@@ -859,6 +859,59 @@ public:
     }
 };
 
+
+// Caution -- make sure scene is locked before you call this function.
+static void computeSolidMeshBounds(const Scene* scene, float& radius, fVec3& center) {
+    // Record the bounding sphere of every object in the scene.
+
+    vector<fVec3> centers;
+    vector<float> radii;
+   for (int i = 0; i < (int) scene->solidMeshes.size(); i++) {
+        fVec3 center;
+        float radius;
+        scene->solidMeshes[i].computeBoundingSphere(radius, center);
+        centers.push_back(center);
+        radii.push_back(radius);
+    }
+
+    // Find the overall bounding sphere of the scene.
+
+    if (centers.size() == 0) {
+        radius = 0;
+        center = fVec3(0);
+    }
+    else {
+        fVec3 lower = centers[0]-radii[0];
+        fVec3 upper = centers[0]+radii[0];
+        for (int i = 1; i < (int) centers.size(); i++) {
+            for (int j = 0; j < 3; j++) {
+                lower[j] = min(lower[j], centers[i][j]-radii[i]);
+                upper[j] = max(upper[j], centers[i][j]+radii[i]);
+            }
+        }
+        center = (lower+upper)/2;
+        radius = 0;
+        for (int i = 0; i < (int) centers.size(); i++)
+            radius = max(radius, (centers[i]-center).norm()+radii[i]);
+    }
+}
+
+class PendingSolidMeshCameraZoom : public PendingCommand {
+    public:
+        void execute() override {
+			float radius;
+			fVec3 center;
+
+			computeSolidMeshBounds(scene, radius, center);
+			
+			float center_x = center[0];
+			fVec3 newCameraPos = X_GC.p();
+			
+			newCameraPos[0] = center_x;
+			X_GC.updP() = newCameraPos; 
+        }
+};
+
 class PendingSetCameraTransform : public PendingCommand {
 public:
     PendingSetCameraTransform(fVec3 R, fVec3 p) : Rxyz(R), p(p) { }
@@ -1423,6 +1476,9 @@ static void renderScene(std::vector<std::string>* screenText = NULL) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     std::lock_guard<std::mutex> lock(sceneMutex); //-------- LOCK SCENE --------
+
+	//readjust camera to follow the solid mesh
+	pendingCommands.push_back(new PendingSolidMeshCameraZoom());
 
     if (scene != NULL) {
         // Remember the simulated time associated with the most recent rendered
