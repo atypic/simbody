@@ -2048,13 +2048,16 @@ static void saveImage() {
 }
 
 static void saveMovie() {
+    printf("Saving movie\n");
     struct stat statInfo;
     int counter = 0;
     string dirname;
+    string basename = std::getenv("RUNNER_DIRNAME");
     do {
         counter++;
         stringstream namestream;
-        namestream << simulatorExecutableName.c_str() << "_";
+        //namestream << simulatorExecutableName.c_str() << "_";
+        namestream << basename << "_";
         namestream << counter;
         dirname = namestream.str();
     } while (stat(dirname.c_str(), &statInfo) == 0);
@@ -2575,6 +2578,7 @@ static void dumpAboutMessageToConsole() {
     printf(  "Support: Simbios, Stanford Bioengineering, NIH U54 GM072970\n");
     printf(  "https://simtk.org/home/simbody\n");
     printf("================================================================\n\n");
+    printf("\n\n => This simbody visualizer has been touched by evil [1] <= \n");
 }
 
 static const int MENU_VIEW_FRONT = 0;
@@ -2830,7 +2834,7 @@ int main(int argc, char** argv) {
     }
 
     // Construct the default initial title.
-    string title = "Simbody " + simbodyVersionStr + ": " + simulatorExecutableName;
+    string title = "Simbody, " + simbodyVersionStr + ": " + simulatorExecutableName;
 
     // Put the upper left corner of the glut window near the upper right
     // corner of the screen.
@@ -2927,6 +2931,14 @@ int main(int argc, char** argv) {
     } else {
         scene = new Scene;
     }
+
+    showGround = true;
+    backgroundColor = fVec3(1,1,1);
+    setClearColorToBackgroundColor();
+    showShadows = true;
+
+    savingMovie = true;
+    saveMovie();
 
     // Avoid hangs on Mac & Linux; posts orphan redisplays on all platforms.
     setKeepAlive(true);
