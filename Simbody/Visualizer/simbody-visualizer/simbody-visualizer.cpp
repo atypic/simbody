@@ -2053,6 +2053,11 @@ static void saveMovie() {
     int counter = 0;
     string dirname;
     string basename = std::getenv("RUNNER_DIRNAME");
+
+    if (basename.length() == 0) {
+        return;
+    }
+
     do {
         counter++;
         stringstream namestream;
