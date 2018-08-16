@@ -2052,17 +2052,22 @@ static void saveMovie() {
     struct stat statInfo;
     int counter = 0;
     string dirname;
-    string basename = std::getenv("RUNNER_DIRNAME");
-
-    if (basename.length() == 0) {
-        return;
+    string basedir;
+    char * basename = std::getenv("RUNNER_DIRNAME");
+    if (basename) {
+        if (strlen(basename) == 0) {
+            return;
+        }
+        basedir = string(basename);
+    } else {
+        basedir = string("/tmp/osim");
     }
 
     do {
         counter++;
         stringstream namestream;
         //namestream << simulatorExecutableName.c_str() << "_";
-        namestream << basename << "_";
+        namestream << basedir << "_";
         namestream << counter;
         dirname = namestream.str();
     } while (stat(dirname.c_str(), &statInfo) == 0);
@@ -2583,7 +2588,7 @@ static void dumpAboutMessageToConsole() {
     printf(  "Support: Simbios, Stanford Bioengineering, NIH U54 GM072970\n");
     printf(  "https://simtk.org/home/simbody\n");
     printf("================================================================\n\n");
-    printf("\n\n => This simbody visualizer has been touched by evil [1] <= \n");
+    printf("\n\n => This simbody visualizer has been touched by evil [3] <= \n");
 }
 
 static const int MENU_VIEW_FRONT = 0;
