@@ -843,6 +843,7 @@ static void zoomCameraToShowWholeScene(bool sceneAlreadyLocked=false) {
         radius/tan(min(fieldOfView, fieldOfView*viewWidth/viewHeight)/2);
     // Back up 1 unit more to make sure we don't clip at this position.
     // Also add a modest offset in the (x,y) direction to avoid edge-on views.
+    //const float offset = std::max(1.f, viewDistance/10);
     const float offset = std::max(1.f, viewDistance/10);
     X_GC.updP() = center+X_GC.R()*fVec3(offset, offset, viewDistance+1);
     // Now fix the aim to point at the center.
@@ -907,7 +908,7 @@ class PendingSolidMeshCameraZoom : public PendingCommand {
 			float center_x = center[0];
 			fVec3 newCameraPos = X_GC.p();
 			
-			newCameraPos[0] = center_x;
+			newCameraPos[0] = center_x + 3.0;
 			X_GC.updP() = newCameraPos; 
         }
 };
